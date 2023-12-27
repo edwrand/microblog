@@ -112,6 +112,7 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
 
     posts: so.WriteOnlyMapped['Post'] = so.relationship(
         back_populates='author')
+    surveys: so.WriteOnlyMapped['Survey'] = so.relationship(back_populates='author')
     following: so.WriteOnlyMapped['User'] = so.relationship(
         secondary=followers, primaryjoin=(followers.c.follower_id == id),
         secondaryjoin=(followers.c.followed_id == id),
@@ -281,6 +282,22 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
 @login.user_loader
 def load_user(id):
     return db.session.get(User, int(id))
+
+
+# trying to incorporate surveys
+class Survey(db.Model):
+    # Define columns
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    title: so.Mapped[str] = so.mapped_column(sa.String(256))
+    questions: so.Mapped[str] = so.mapped_column(sa.Text)
+    user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('user.id'), index=True)
+    timestamp: so.Mapped[datetime] = so.mapped_column(default=lambda: datetime.now(timezone.utc))
+
+    # Relationship to the User class
+    author: so.Mapped['User'] = so.relationship(back_populates='surveys')
+
+    def __repr__(self):
+        return f'<Survey {self.title}>'
 
 
 class Post(SearchableMixin, db.Model):

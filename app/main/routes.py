@@ -239,3 +239,19 @@ def notifications():
         'data': n.get_data(),
         'timestamp': n.timestamp
     } for n in notifications]
+
+
+@bp.route('/create_survey', methods=['GET', 'POST'])
+@login_required
+def create_survey():
+    form = SurveyForm()
+    if form.validate_on_submit():
+        # Assuming your form includes fields like 'title' and 'questions'
+        survey = Survey(title=form.title.data, 
+                        questions=form.questions.data, 
+                        user_id=current_user.id)
+        db.session.add(survey)
+        db.session.commit()
+        flash(_('Your survey has been created!'))
+        return redirect(url_for('main.index'))  # Redirect as appropriate
+    return render_template('create_survey.html', title=_('Create Survey'), form=form)
